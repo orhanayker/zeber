@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Enhanced Language Learning Tool</title>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="styles.css">
+        </head>
+    
+    
+<body>
+    <div class="container">
+        <h1>Enhanced Language Learning Tool</h1>
+        
+        <div class="tab-container">
+            <button class="tab-button active" data-tab="reviewTab">Review</button>
+            <button class="tab-button" data-tab="libraryTab">Library</button>
+        </div>
+
+        <div id="reviewTab" class="tab-content active">
+            <h2>Review</h2>
+            <div id="reviewCount"></div>
+            <div id="lastResult"></div>
+            <div id="reviewWord"></div>
+            <input type="text" id="answerInput" placeholder="Type your answer">
+            <button id="checkAnswerBtn">Check Answer</button>
+            <div id="result"></div>
+            <div id="setResult"></div>
+            <div id="progressBar">
+                <div id="progressText"></div>
+                <div id="progressFill"></div>
+            </div>
+        </div>
+
+        <div id="libraryTab" class="tab-content">
+            <h2>Library</h2>
+            <div>
+                <input type="text" id="newWord" placeholder="New word">
+                <input type="text" id="newTranslation" placeholder="Translation">
+                <button id="addWordBtn">Add Word</button>
+            </div>
+            <table id="libraryTable">
+                <thead>
+                    <tr>
+                        <th>Word <span class="sort-arrow" data-sort="word">▲▼</span></th>
+                        <th>Translation <span class="sort-arrow" data-sort="translation">▲▼</span></th>
+                        <th>Level <span class="sort-arrow" data-sort="level">▲▼</span></th>
+                        <th>Last Review <span class="sort-arrow" data-sort="lastReview">▲▼</span></th>
+                        <th>Next Review <span class="sort-arrow" data-sort="nextReview">▲▼</span></th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="libraryTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <audio id="correctSound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3"></audio>
+    <audio id="wrongSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
+</body>
+</html>
