@@ -189,7 +189,7 @@ function updateProgressBar() {
 
 function calculateNextReviewDate(level) {
     let today = new Date();
-    today.setDate(today.getDate() + Math.pow(2, level - 1));
+    today.setDate(today.getDate() + Math.pow(2, level));
     return today.toISOString().split('T')[0];
 }
 
