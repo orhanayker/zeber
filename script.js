@@ -27,6 +27,40 @@ let correctAnswersInSet = 0;
 let wrongAnswers = [];
 let currentSort = { column: null, direction: 'asc' };
 const WORDS_PER_SET = 10;
+const activityLog = [];
+const MAX_ACTIVITY_ITEMS = 8;
+
+function addActivityLog(message) {
+    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    activityLog.unshift({ message, timestamp });
+    if (activityLog.length > MAX_ACTIVITY_ITEMS) {
+        activityLog.pop();
+    }
+    renderActivityLog();
+}
+
+function renderActivityLog() {
+    const activityList = document.getElementById('activityList');
+    if (!activityList) {
+        return;
+    }
+
+    activityList.innerHTML = '';
+
+    if (activityLog.length === 0) {
+        const emptyItem = document.createElement('li');
+        emptyItem.className = 'activity-empty';
+        emptyItem.textContent = 'No activity yet.';
+        activityList.appendChild(emptyItem);
+        return;
+    }
+
+    activityLog.forEach((entry) => {
+        const item = document.createElement('li');
+        item.innerHTML = `<span class="activity-time">${entry.timestamp}</span> ${entry.message}`;
+        activityList.appendChild(item);
+    });
+}
 
 function openTab(tabName) {
     let tabContents = document.getElementsByClassName("tab-content");
@@ -46,6 +80,8 @@ function openTab(tabName) {
         updateReviewCount();
         displayReviewWord();
     }
+
+    addActivityLog(`Switched to ${tabName === 'reviewTab' ? 'Review' : 'Library'} tab.`);
 }
 
 function sortWords(column) {
@@ -59,6 +95,7 @@ function sortWords(column) {
     });
 
     updateLibraryTable();
+    addActivityLog(`Sorted by ${column} (${direction}).`);
 }
 
 function updateLibraryTable() {
@@ -71,7 +108,7 @@ function updateLibraryTable() {
         row.insertCell(2).textContent = word.level;
         row.insertCell(3).textContent = word.lastReview || 'Not reviewed';
         row.insertCell(4).textContent = word.nextReview || 'Review today';
-        
+
         let actionsCell = row.insertCell(5);
         let modifyBtn = document.createElement('button');
         modifyBtn.textContent = 'Modify';
@@ -94,21 +131,21 @@ function updateReviewCount() {
 function displayReviewWord() {
     const today = new Date().toISOString().split('T')[0];
     const reviewableWords = words.filter(word => !word.nextReview || word.nextReview <= today);
-    
+
     if (reviewableWords.length > 0) {
         if (currentSetIndex >= WORDS_PER_SET || currentSetIndex >= reviewableWords.length) {
             showSetResult();
             currentSetIndex = 0;
             correctAnswersInSet = 0;
         }
-        
+
         currentWordIndex = words.indexOf(reviewableWords[currentSetIndex]);
         document.getElementById("reviewWord").textContent = words[currentWordIndex].word;
         document.getElementById("answerInput").value = "";
         document.getElementById("result").textContent = "";
         document.getElementById("answerInput").disabled = false;
         document.getElementById("answerInput").focus();
-        
+
         updateProgressBar();
     } else {
         document.getElementById("reviewWord").textContent = "No words to review today";
@@ -122,32 +159,32 @@ function checkAnswer() {
     let correctAnswer = words[currentWordIndex].translation.toLowerCase();
     let lastResult = document.getElementById("lastResult");
     let result = document.getElementById("result");
-    
+
     if (userAnswer === correctAnswer) {
         result.textContent = "Correct!";
         result.className = "correct";
         document.getElementById('correctSound').play();
         words[currentWordIndex].level = Math.min(words[currentWordIndex].level + 1, 10);
         correctAnswersInSet++;
+        addActivityLog(`✅ ${words[currentWordIndex].word}: answered correctly.`);
     } else {
         result.textContent = "Incorrect. The correct answer is: " + correctAnswer;
         result.className = "incorrect";
         document.getElementById('wrongSound').play();
         words[currentWordIndex].level = 1;
+        addActivityLog(`❌ ${words[currentWordIndex].word}: answered "${userAnswer || 'empty'}".`);
     }
     if (userAnswer !== correctAnswer) {
         wrongAnswers.push({word: words[currentWordIndex].word, correct: correctAnswer, user: userAnswer});
     }
 
-
-    
     words[currentWordIndex].lastReview = new Date().toISOString().split('T')[0];
     words[currentWordIndex].nextReview = calculateNextReviewDate(words[currentWordIndex].level);
-    
-    lastResult.innerHTML = `Last word: ${words[currentWordIndex].word} - Your answer: ${userAnswer} - Correct answer: ${correctAnswer} 
+
+    lastResult.innerHTML = `Last word: ${words[currentWordIndex].word} - Your answer: ${userAnswer} - Correct answer: ${correctAnswer}
                             ${userAnswer === correctAnswer ? '✅' : '❌'}`;
     lastResult.className = userAnswer === correctAnswer ? "correct" : "incorrect";
-    
+
     currentSetIndex++;
     updateReviewCount();
     setTimeout(displayReviewWord, 1500);
@@ -176,6 +213,7 @@ function showSetResult() {
         wrongAnswersHtml += '</ul>';
         setResult.innerHTML += wrongAnswersHtml;
     }
+    addActivityLog(`Set finished with ${correctAnswersInSet}/${WORDS_PER_SET} correct answers.`);
     wrongAnswers = [];
 }
 
@@ -208,6 +246,7 @@ function addWord() {
         document.getElementById("newTranslation").value = "";
         updateLibraryTable();
         updateReviewCount();
+        addActivityLog(`Added new word: ${newWord} → ${newTranslation}.`);
     }
 }
 
@@ -216,20 +255,24 @@ function modifyWord(index) {
     let newWord = prompt("Enter new word:", word.word);
     let newTranslation = prompt("Enter new translation:", word.translation);
     if (newWord !== null && newTranslation !== null) {
+        const previousWord = word.word;
         words[index] = {
             ...word,
             word: newWord.trim(),
             translation: newTranslation.trim()
         };
         updateLibraryTable();
+        addActivityLog(`Modified "${previousWord}" to "${words[index].word}".`);
     }
 }
 
 function removeWord(index) {
     if (confirm("Are you sure you want to remove this word?")) {
+        const removedWord = words[index].word;
         words.splice(index, 1);
         updateLibraryTable();
         updateReviewCount();
+        addActivityLog(`Removed word: ${removedWord}.`);
     }
 }
 
@@ -256,3 +299,5 @@ document.getElementById('answerInput').addEventListener('keypress', function(e) 
 updateReviewCount();
 displayReviewWord();
 updateLibraryTable();
+renderActivityLog();
+addActivityLog('App loaded. Start reviewing or managing your library.');
